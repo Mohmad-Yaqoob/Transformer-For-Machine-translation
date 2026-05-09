@@ -178,13 +178,13 @@ class Transformer(nn.Module):
         self._load_vocab_and_tokenizers()
 
         # download weights from drive if not already present
-        if gdrive_id is not None and not os.path.exists(checkpoint_path):
-            gdown.download(id=gdrive_id, output=checkpoint_path, quiet=False)
-
-        if checkpoint_path is not None and os.path.exists(checkpoint_path):
-            ckpt = torch.load(checkpoint_path, map_location='cpu')
-            self.load_state_dict(ckpt['model_state_dict'])
-            print(f"Loaded weights from {checkpoint_path}")
+        if checkpoint_path is not None:
+            if gdrive_id is not None and not os.path.exists(checkpoint_path):
+                gdown.download(id=gdrive_id, output=checkpoint_path, quiet=False)
+            if os.path.exists(checkpoint_path):
+                ckpt = torch.load(checkpoint_path, map_location='cpu')
+                self.load_state_dict(ckpt['model_state_dict'])
+                print(f"Loaded weights from {checkpoint_path}")
 
     def _init_weights(self):
         for p in self.parameters():
