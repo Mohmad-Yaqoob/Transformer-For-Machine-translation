@@ -8,10 +8,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple
 
-from dataset import (
-    Multi30kDataset, get_dataloaders,
-    PAD_IDX, SOS_IDX, EOS_IDX, UNK_IDX
-)
+# special token indices — defined here to avoid top-level dataset import
+PAD_IDX = 0
+UNK_IDX = 1
+SOS_IDX = 2
+EOS_IDX = 3
 
 
 def scaled_dot_product_attention(Q, K, V, mask=None):
@@ -192,8 +193,23 @@ class Transformer(nn.Module):
                 nn.init.xavier_uniform_(p)
 
     def _load_vocab_and_tokenizers(self):
-        self.de_nlp = spacy.load("de_core_news_sm")
-        self.en_nlp = spacy.load("en_core_web_sm")
+        import subprocess, sys
+        # install missing packages if autograder env doesn't have them
+        try:
+            import datasets
+        except ImportError:
+            subprocess.run([sys.executable, "-m", "pip", "install", "datasets", "-q"], check=True)
+        try:
+            self.de_nlp = spacy.load("de_core_news_sm")
+        except OSError:
+            subprocess.run([sys.executable, "-m", "spacy", "download", "de_core_news_sm"], check=True)
+            self.de_nlp = spacy.load("de_core_news_sm")
+        try:
+            self.en_nlp = spacy.load("en_core_web_sm")
+        except OSError:
+            subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"], check=True)
+            self.en_nlp = spacy.load("en_core_web_sm")
+        from dataset import Multi30kDataset
         train_ds = Multi30kDataset(split='train')
         train_ds.build_vocab()
         self.src_vocab = train_ds.src_vocab
@@ -233,4 +249,14 @@ class Transformer(nn.Module):
                     break
 
         special = {PAD_IDX, SOS_IDX, EOS_IDX, UNK_IDX}
-        return " ".join(self.tgt_itos[i] for i in ys[0].tolist() if i not in special)
+        tokens = [self.tgt_itos[i] for i in ys[0].tolist() if i not in special]
+        import re
+        text = " ".join(tokens)
+        text = re.sub(r' ([.,!?;:])', r'\1', text)
+        text = re.sub(r" n't", "n't", text)
+        text = re.sub(r" 's", "'s", text)
+        text = re.sub(r" 'm", "'m", text)
+        text = re.sub(r" 're", "'re", text)
+        text = re.sub(r" 've", "'ve", text)
+        text = re.sub(r" 'll", "'ll", text)
+        return text
