@@ -2,6 +2,11 @@
 
 Implementation of the Transformer architecture from "Attention Is All You Need" (Vaswani et al., 2017) for German → English translation using the Multi30k dataset.
 
+## Links
+
+- **W&B Report**: https://api.wandb.ai/links/da25m017-indian-institute-of-technology-madras/9qf4h46h
+- **GitHub Repo**: https://github.com/Mohmad-Yaqoob/Transformer-For-Machine-translation
+
 ## Project Structure
 
 ```
@@ -39,7 +44,7 @@ from model import Transformer
 model = Transformer()   # downloads weights from Drive automatically
 model.eval()
 print(model.infer("Ein Mann sitzt auf einer Bank."))
-# → "a man is sitting on a bench ."
+# → "a man is sitting on a bench."
 ```
 
 The model weights are downloaded automatically from Google Drive via gdown inside `Transformer.__init__()`.
@@ -64,17 +69,18 @@ The model weights are downloaded automatically from Google Drive via gdown insid
 | Metric | Score |
 |---|---|
 | Validation BLEU | 36.54 |
-| Test BLEU | 37.54 |
+| Test BLEU (our eval) | 37.54 |
+| Autograder BLEU | 38.72 |
 
 ## Experiments (W&B Report)
 
 Five ablation studies logged to Weights & Biases:
 
-1. **Noam vs Fixed LR** :- Noam scheduler vs constant 1e-4 LR
-2. **Scaling Factor** :- With vs without 1/√dk in attention, with gradient norm tracking
-3. **Attention Head Visualisation** :- Heatmaps of last encoder layer attention heads
-4. **Positional Encoding** :- Sinusoidal vs learned positional embeddings
-5. **Label Smoothing** :- ε=0.1 vs ε=0.0, with prediction confidence tracking
+1. **Noam vs Fixed LR** — Noam scheduler vs constant 1e-4 LR. Noam achieves 35.66 BLEU vs 29.01 for fixed LR.
+2. **Scaling Factor 1/√dk** — With vs without scaling in attention, with Q and K gradient norm tracking.
+3. **Attention Head Visualisation** — Heatmaps of all 8 heads in last encoder layer showing head specialization.
+4. **Positional Encoding** — Sinusoidal vs learned positional embeddings comparison.
+5. **Label Smoothing** — ε=0.1 vs ε=0.0, with prediction confidence tracking across training.
 
 ## Dataset
 
