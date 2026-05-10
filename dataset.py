@@ -1,6 +1,5 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from datasets import load_dataset
 import spacy
 from collections import Counter
 
@@ -18,7 +17,12 @@ EOS_IDX = 3
 class Multi30kDataset(Dataset):
     def __init__(self, split='train'):
         self.split = split
-
+        try:
+            from datasets import load_dataset
+        except ImportError:
+            import subprocess, sys
+            subprocess.run([sys.executable, "-m", "pip", "install", "datasets", "-q"], check=True)
+            from datasets import load_dataset
         raw = load_dataset("bentrevett/multi30k")
         split_map = {'train': 'train', 'val': 'validation', 'test': 'test'}
         self.data = raw[split_map[split]]
@@ -93,6 +97,7 @@ def collate_fn(batch):
 
 
 def get_dataloaders(batch_size=64):
+    from datasets import load_dataset
     print("Loading train split...")
     train_ds = Multi30kDataset(split='train')
     train_ds.build_vocab()
